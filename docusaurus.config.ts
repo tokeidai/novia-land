@@ -1,3 +1,4 @@
+import { themes as prismThemes } from "prism-react-renderer";
 import type { Config, PluginOptions } from "@docusaurus/types";
 import type { Options as DocsOptions } from "@docusaurus/plugin-content-docs";
 import type { Options as PagesOptions } from "@docusaurus/plugin-content-pages";
@@ -5,6 +6,8 @@ import type { Options as ThemesOptions } from "@docusaurus/theme-classic";
 
 import type { ThemeConfig as BaseThemeConfig } from "@docusaurus/types";
 import type { UserThemeConfig as ClassicThemeConfig } from "@docusaurus/theme-common";
+
+import { NoviaLandConfig as cfg } from "./config";
 
 function makePluginConfig(
   source: string,
@@ -16,7 +19,22 @@ function makePluginConfig(
   return require.resolve(source);
 }
 
-const books: DocsOptions[] = [];
+const copyrightStartTime = 2020;
+const currentYear = new Date().getFullYear();
+const copyrightTime =
+  currentYear === copyrightStartTime
+    ? `${currentYear}`
+    : `${copyrightStartTime}-${currentYear}`;
+
+const books: DocsOptions[] = cfg.books.map((e) => {
+  return {
+    id: e.slug,
+    path: `content/books/${e.path}`,
+    breadcrumbs: true,
+    include: ["**/*.{md,mdx}"],
+    routeBasePath: `books/${e.slug}`,
+  };
+});
 
 const config: Config = {
   title: "诺维亚大陆",
@@ -80,17 +98,33 @@ const config: Config = {
         height: 32,
         className: "custom-navbar-logo-class",
       },
-      items: [
-        {
-          type: "doc",
-          position: "left",
-          docId: "index",
-          label: "Wiki",
-          docsPluginId: "wiki",
-        },
-      ],
-    } as BaseThemeConfig & ClassicThemeConfig,
-  },
+      items: cfg.navbarLinks.map((e) => {
+        return {
+          label: e.label,
+          to: e.to,
+        };
+      }),
+    },
+    footer: {
+      copyright: `Copyright © ${copyrightTime} Amaki-Aria`,
+      links: cfg.footerLinks.map((e) => {
+        return {
+          title: e.title,
+          items: e.items.map((i) => {
+            return {
+              label: i.label,
+              to: i.external ? undefined : i.to,
+              href: i.external ? i.to : undefined,
+            };
+          }),
+        };
+      }),
+    },
+    prism: {
+      theme: prismThemes.github,
+      darkTheme: prismThemes.oneDark,
+    },
+  } as BaseThemeConfig & ClassicThemeConfig,
 };
 
 books.forEach((e) => {
